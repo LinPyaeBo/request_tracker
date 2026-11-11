@@ -1,3 +1,4 @@
+using Xunit;
 using RequestTracker.Api;
 
 namespace RequestTracker.Api.Tests;
