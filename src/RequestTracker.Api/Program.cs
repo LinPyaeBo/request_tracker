@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using RequestTracker.Api;
 using RequestTracker.Api.Data;
 using RequestTracker.Api.Models;
 
