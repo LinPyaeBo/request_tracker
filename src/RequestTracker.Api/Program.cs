@@ -35,8 +35,8 @@ app.MapPost("/api/requests", async (CreateRequestInput input, AppDbContext db, C
 
     var request = new ServiceRequest
     {
-        Title = input.Title.Trim(),
-        Description = input.Description.Trim(),
+        Title = input.Title!.Trim(),
+        Description = input.Description!.Trim(),
         RequestedBy = string.IsNullOrWhiteSpace(input.RequestedBy) ? null : input.RequestedBy.Trim()
     };
 
@@ -70,4 +70,4 @@ app.Run();
 public sealed record CreateRequestInput(string? Title, string? Description, string? RequestedBy);
 public sealed record UpdateStatusInput(string? Status);
 
-public partial class Program;
+public partial class Program { }
