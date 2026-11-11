@@ -1,41 +1,65 @@
 # Request Tracker
 
-A small service request tracking application built as a practical exercise in AI-assisted software development.
+A small service-request tracking application built with ASP.NET Core 10, C#, PostgreSQL, Entity Framework Core, and a plain HTML/CSS/JavaScript interface.
 
-## Goal
+## Current features
 
-Build a working web application where users can create, view, and update service requests. The project is intentionally small so that implementation decisions, testing, and code review remain understandable.
+- Create a service request with a title, description, and optional requester.
+- List requests newest first and view an individual request through the API.
+- Change a request status: Pending, InProgress, or Completed.
+- Validate required fields and maximum input lengths.
+- Store request data in PostgreSQL.
+- Unit tests for request input validation.
 
-## Technology
+## Requirements
 
-- ASP.NET Core with C#
-- PostgreSQL
-- HTML, CSS, and JavaScript
-- xUnit for automated tests
+- .NET 10 SDK
+- PostgreSQL 17 or a compatible PostgreSQL server
 
-## Initial scope
+## Run locally
 
-- Create a service request with a title and description.
-- List saved requests.
-- View an individual request.
-- Update its status.
-- Validate input and handle errors.
-- Persist data in PostgreSQL.
+1. Create a PostgreSQL database named `request_tracker`.
+2. Set the connection string as an environment variable. Do not commit credentials.
 
-Authentication, custom roles, attachments, notifications, and other advanced features are out of scope for the first version.
+PowerShell example:
 
-## Development principles
+```powershell
+$env:ConnectionStrings__Default = "Host=localhost;Port=5432;Database=request_tracker;Username=YOUR_USER;Password=YOUR_PASSWORD"
+dotnet run --project src/RequestTracker.Api
+```
 
-- Keep the design simple and explainable.
-- Use small, reviewable changes.
-- Run tests after meaningful changes.
-- Record actual issues and corrections; do not manufacture mistakes for the reflection assignment.
+3. Open the local URL printed by ASP.NET Core.
+
+The database schema must be created before the first run. The current version does not run EF Core migrations automatically.
+
+## Run tests
+
+```powershell
+dotnet test tests/RequestTracker.Api.Tests/RequestTracker.Api.Tests.csproj
+```
+
+## API
+
+- `GET /health`
+- `GET /api/requests`
+- `GET /api/requests/{id}`
+- `POST /api/requests`
+- `PUT /api/requests/{id}/status`
+
+Example request body:
+
+```json
+{
+  "title": "Printer issue",
+  "description": "The office printer is offline.",
+  "requestedBy": "Aye Aye"
+}
+```
+
+## Scope boundaries
+
+Authentication, custom roles, attachments, notifications, and configurable workflows are intentionally excluded from this first version.
 
 ## AI coding reflection
 
-During development, keep evidence of:
-1. Work AI completed efficiently, including the actual code.
-2. A real issue the developer independently noticed and corrected.
-3. A decision or implementation the developer could not fully verify, including what knowledge would be needed to review it.
-
-Only record events that actually happen.
+This repository is also being used to record a real coding exercise. Any reflection about AI assistance must be based on actual code, observed behavior, and issues the student personally identifies. No bugs or student discoveries should be invented for the assignment.
