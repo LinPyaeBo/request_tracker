@@ -5,7 +5,7 @@ using RequestTracker.Api.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("Default")
-    ?? "Host=localhost;Port=5432;Database=request_tracker;Username=postgres;Password=postgres";
+    ?? throw new InvalidOperationException("Set the ConnectionStrings__Default environment variable.");
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
 
