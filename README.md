@@ -19,7 +19,8 @@ A small service-request tracking application built with ASP.NET Core 10, C#, Pos
 ## Run locally
 
 1. Create a PostgreSQL database named `request_tracker`.
-2. Set the connection string as an environment variable. Do not commit credentials.
+2. Run `database/schema.sql` against that database to create the initial table.
+3. Set the connection string as an environment variable. Do not commit credentials.
 
 PowerShell example:
 
@@ -30,7 +31,7 @@ dotnet run --project src/RequestTracker.Api
 
 3. Open the local URL printed by ASP.NET Core.
 
-The database schema must be created before the first run. The current version does not run EF Core migrations automatically.
+The database schema must be created before the first run. The SQL setup script is included; this first version does not run EF Core migrations automatically.
 
 ## Run tests
 
