@@ -29,7 +29,7 @@ app.MapGet("/api/requests/{id:int}", async (int id, AppDbContext db, Cancellatio
 
 app.MapPost("/api/requests", async (CreateRequestInput input, AppDbContext db, CancellationToken ct) =>
 {
-    var errors = Validate(input.Title, input.Description, input.RequestedBy);
+    var errors = RequestInputValidator.Validate(input.Title, input.Description, input.RequestedBy);
     if (errors.Count > 0)
         return Results.ValidationProblem(errors);
 
@@ -66,26 +66,6 @@ app.MapPut("/api/requests/{id:int}/status", async (int id, UpdateStatusInput inp
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 
 app.Run();
-
-static Dictionary<string, string[]> Validate(string? title, string? description, string? requestedBy)
-{
-    var errors = new Dictionary<string, string[]>();
-
-    if (string.IsNullOrWhiteSpace(title))
-        errors["title"] = ["A title is required."];
-    else if (title.Trim().Length > 120)
-        errors["title"] = ["The title must be 120 characters or fewer."];
-
-    if (string.IsNullOrWhiteSpace(description))
-        errors["description"] = ["A description is required."];
-    else if (description.Trim().Length > 2000)
-        errors["description"] = ["The description must be 2000 characters or fewer."];
-
-    if (requestedBy?.Trim().Length > 120)
-        errors["requestedBy"] = ["Requested by must be 120 characters or fewer."];
-
-    return errors;
-}
 
 public sealed record CreateRequestInput(string? Title, string? Description, string? RequestedBy);
 public sealed record UpdateStatusInput(string? Status);
