@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Request Tracker</title>
+  <style>
+    :root { font-family: system-ui, sans-serif; color: #242238; background: #f6f4f8; }
+    body { max-width: 900px; margin: 40px auto; padding: 0 18px; }
+    h1 { margin-bottom: 6px; } .muted { color: #6d6878; }
+    form, .request { background: white; border: 1px solid #e7e2eb; border-radius: 12px; padding: 18px; margin: 16px 0; }
+    label { display: block; font-weight: 600; margin: 12px 0 5px; }
+    input, textarea, select, button { box-sizing: border-box; width: 100%; padding: 10px; border: 1px solid #d8d1df; border-radius: 8px; font: inherit; }
+    textarea { min-height: 90px; resize: vertical; }
+    button { margin-top: 14px; background: #45365f; color: white; border: 0; cursor: pointer; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .request-head { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+    .error { color: #a32638; } .status { font-size: .85rem; background: #eeeaf4; padding: 5px 9px; border-radius: 20px; }
+    @media (max-width: 600px) { .row { grid-template-columns: 1fr; } .request-head { align-items: flex-start; flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <h1>Service Request Tracker</h1>
+  <p class="muted">Create requests and keep their status up to date.</p>
+  <form id="request-form">
+    <h2>New request</h2>
+    <label for="title">Title</label>
+    <input id="title" maxlength="120" required>
+    <label for="description">Description</label>
+    <textarea id="description" maxlength="2000" required></textarea>
+    <label for="requestedBy">Requested by (optional)</label>
+    <input id="requestedBy" maxlength="120">
+    <button type="submit">Create request</button>
+    <p id="message" role="status" class="muted"></p>
+  </form>
+  <h2>Requests</h2>
+  <section id="requests" aria-live="polite">Loading…</section>
+  <script>
+    const list = document.querySelector("#requests");
+    const message = document.querySelector("#message");
+
+    async function loadRequests() {
+      const response = await fetch("/api/requests");
+      if (!response.ok) throw new Error("Could not load requests.");
+      const requests = await response.json();
+      list.replaceChildren();
+      if (requests.length === 0) {
+        list.textContent = "No requests yet.";
+        return;
+      }
+      for (const request of requests) {
+        const article = document.createElement("article");
+        article.className = "request";
+        const heading = document.createElement("div");
+        heading.className = "request-head";
+        const title = document.createElement("strong");
+        title.textContent = request.title;
+        const status = document.createElement("span");
+        status.className = "status";
+        status.textContent = request.status;
+        heading.append(title, status);
+        const description = document.createElement("p");
+        description.textContent = request.description;
+        const meta = document.createElement("p");
+        meta.className = "muted";
+        meta.textContent = (request.requestedBy || "Unknown requester") + " · " + new Date(request.createdAtUtc).toLocaleString();
+        const select = document.createElement("select");
+        for (const value of ["Pending", "InProgress", "Completed"]) {
+          const option = document.createElement("option");
+          option.value = value;
+          option.textContent = value;
+          option.selected = value.toLowerCase() === request.status.toLowerCase();
+          select.append(option);
+        }
+        select.addEventListener("change", async () => {
+          const result = await fetch("/api/requests/" + request.id + "/status", {
+            method: "PUT", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: select.value })
+          });
+          if (!result.ok) {
+            message.textContent = "Status update failed.";
+            message.className = "error";
+            return;
+          }
+          await loadRequests();
+        });
+        article.append(heading, description, meta, select);
+        list.append(article);
+      }
+    }
+
+    document.querySelector("#request-form").addEventListener("submit", async event => {
+      event.preventDefault();
+      message.textContent = "";
+      const response = await fetch("/api/requests", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: document.querySelector("#title").value,
+          description: document.querySelector("#description").value,
+          requestedBy: document.querySelector("#requestedBy").value
+        })
+      });
+      if (!response.ok) {
+        const body = await response.json();
+        message.textContent = Object.values(body.errors || {}).flat().join(" ");
+        message.className = "error";
+        return;
+      }
+      event.target.reset();
+      message.textContent = "Request created.";
+      await loadRequests();
+    });
+
+    loadRequests().catch(error => {
+      list.textContent = error.message + " Check the API and database connection.";
+    });
+  </script>
+</body>
+</html>
